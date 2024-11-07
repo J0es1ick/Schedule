@@ -1,64 +1,14 @@
-import axios from "axios";
+import "dotenv/config";
 import { load } from "cheerio";
 import { getPageContent } from "./helpers/getPageContent";
-import { ICourse } from "./models/ICourse";
-import { IGroup } from "./models/IGroup";
-import { IFaculty } from "./models/IFaculty";
-import { ILesson } from "./models/ILesson";
+import { removeLessonWithSubject } from "./helpers/removeLessonWithSubject";
+import { ILesson } from "./models";
+import { fetchCourses, fetchFaculties, fetchGroups } from "./fetching";
 
-const BASE_URL = "http://schedule.ispu.ru/";
-
-function removeItemsWithName(lessons: ILesson[], subject: string): void {
-  for (let i = 0; i < lessons.length; i++) {
-    if (lessons[i].subject === subject) {
-      lessons.splice(i--, 1);
-    }
-  }
-}
-
-async function fetchCoursesAndGroups(): Promise<{
-  courses: ICourse[];
-  groups: IGroup[];
-  faculties: IFaculty[];
-}> {
-  const html = await getPageContent(BASE_URL);
-  const $ = load(html);
-
-  const courses: ICourse[] = [];
-  const groups: IGroup[] = [];
-  const faculties: IFaculty[] = [];
-
-  $('select[name="ctl00$ContentPlaceHolder1$ddlCorse"] option').each(
-    (i, el) => {
-      courses.push({
-        name: $(el).attr("value") || "",
-      });
-    }
-  );
-
-  $('select[name="ctl00$ContentPlaceHolder1$ddlObjectValue"] option').each(
-    (i, el) => {
-      groups.push({
-        sequenceNumber: $(el).attr("value") || "",
-        name: $(el).text(),
-      });
-    }
-  );
-
-  $('select[name="ctl00$ContentPlaceHolder1$ddlSubDivision"] option').each(
-    (i, el) => {
-      faculties.push({
-        sequenceNumber: $(el).attr("value") || "",
-        name: $(el).text(),
-      });
-    }
-  );
-
-  return { courses, groups, faculties };
-}
+const BASE_URL = process.env.BASE_URL;
 
 async function fetchSchedule(): Promise<ILesson[]> {
-  const html = await getPageContent(BASE_URL);
+  const html = await getPageContent(BASE_URL!);
   const $ = load(html);
 
   const lessons: ILesson[] = [];
@@ -144,14 +94,22 @@ async function fetchSchedule(): Promise<ILesson[]> {
       });
   });
 
-  removeItemsWithName(lessons, "");
+  removeLessonWithSubject(lessons, "");
   return lessons;
 }
 
-fetchCoursesAndGroups().then((result) => {
+fetchSchedule().then((result) => {
   console.log(result);
 });
 
-fetchSchedule().then((result) => {
+fetchCourses(BASE_URL!).then((result) => {
+  console.log(result);
+});
+
+fetchFaculties(BASE_URL!).then((result) => {
+  console.log(result);
+});
+
+fetchGroups(BASE_URL!).then((result) => {
   console.log(result);
 });
