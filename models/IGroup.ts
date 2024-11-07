@@ -1,4 +1,4 @@
-export interface Group {
+export interface IGroup {
   //Номер группы внутри системы расписания
   sequenceNumber: string;
 
