@@ -1,11 +1,7 @@
 import { load } from "cheerio";
-import { getPageContent } from "../helpers/getPageContent";
 import { IGroup } from "../models";
 
-export async function fetchGroups(url: string): Promise<{
-  groups: IGroup[];
-}> {
-  const html = await getPageContent(url);
+export async function fetchGroups(html: string): Promise<IGroup[]> {
   const $ = load(html);
 
   const groups: IGroup[] = [];
@@ -19,5 +15,5 @@ export async function fetchGroups(url: string): Promise<{
     }
   );
 
-  return { groups };
+  return groups;
 }

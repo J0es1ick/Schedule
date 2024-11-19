@@ -1,115 +1,67 @@
 import "dotenv/config";
+
+import fs from "fs";
 import { load } from "cheerio";
 import { getPageContent } from "./helpers/getPageContent";
 import { removeLessonWithSubject } from "./helpers/removeLessonWithSubject";
-import { ILesson } from "./models";
-import { fetchCourses, fetchFaculties, fetchGroups } from "./fetching";
+import { ILesson, IFaculty } from "./models";
+import {
+  fetchCourses,
+  fetchFaculties,
+  fetchGroups,
+  fetchSchedule,
+} from "./fetching";
 
 const BASE_URL = process.env.BASE_URL;
 
-async function fetchSchedule(): Promise<ILesson[]> {
-  const html = await getPageContent(BASE_URL!);
-  const $ = load(html);
+/*fetchCourses(BASE_URL!).then((result) => {
+  console.log(result);
+});*/
 
-  const lessons: ILesson[] = [];
-  let currentTime: { start: string; end: string } | null = null;
-  let currentDayIndex = 0;
-  const daysOfWeek = [
-    "Понедельник",
-    "Вторник",
-    "Среда",
-    "Четверг",
-    "Пятница",
-    "Суббота",
-    "Воскресенье",
-  ];
-  let currentWeek: number = 1;
+/*async function useFaculties() {
+  const groupValue = "ваше_значение_группы";
+  const courseValue = "ваше_значение_курса";
+  const facultyValue = "ваше_значение_факультета";
 
-  $("tr[height='30']").each((i, el) => {
-    if ($("tr[height='30']").length / 2 <= i) {
-      currentWeek = 2;
-    }
+  try {
+    const { lessons, courses, faculties, groups } = await fetchSchedule(
+      BASE_URL!,
+      "918",
+      "2",
+      "30000"
+    );
 
-    const timeElement = $(el).find('td[width="80px"]');
-
-    if (timeElement.length > 0) {
-      const timeText = timeElement.text().trim();
-      const rgx = new RegExp(
-        [/^\d+(\.\d+)?-\d+(\.\d+)?$/, /\d+\.\d+ - \d+\.\d+/]
-          .map(function (r) {
-            return (r + "").replace(/\//g, "");
-          })
-          .join("|"),
-        "g"
-      );
-      if (timeText.match(rgx)) {
-        const timeParts = timeText.split("-");
-        currentTime = { start: timeParts[0], end: timeParts[1] };
-      }
-    }
-
-    $(el)
-      .find('td[rowspan="1"]')
-      .each((j, lessonEl) => {
-        const lessonString: string = $(lessonEl).text().trim();
-        if (currentTime) {
-          const parts: string[] = lessonString.split(/\s+/);
-          if (parts.length < 4) {
-            lessons.push({
-              subject: "",
-              type: "",
-              teacher: "",
-              room: "",
-              time: currentTime,
-              day: daysOfWeek[currentDayIndex],
-              week: currentWeek,
-            });
-          }
-          const room: string = parts.pop()!;
-          let teacherLastName: string;
-          let teacherFirstName: string;
-          if (parts.includes("XX")) {
-            teacherLastName = parts.pop()!;
-            teacherFirstName = "";
-          } else {
-            teacherLastName = parts.pop()!;
-            teacherFirstName = parts.pop()!;
-          }
-          const type: string = parts.pop()!;
-          const teacher: string = `${teacherFirstName} ${teacherLastName}`;
-          const subject: string = parts.join(" ");
-
-          lessons.push({
-            subject,
-            type,
-            teacher,
-            room,
-            time: currentTime,
-            day: daysOfWeek[currentDayIndex],
-            week: currentWeek,
-          });
-
-          currentDayIndex = (currentDayIndex + 1) % 7;
-        }
-      });
-  });
-
-  removeLessonWithSubject(lessons, "");
-  return lessons;
+    console.log(lessons);
+    console.log(courses);
+    console.log(faculties);
+    console.log(groups);
+  } catch (error) {
+    console.error("Ошибка при получении данных:", error);
+  }
 }
 
-fetchSchedule().then((result) => {
-  console.log(result);
-});
+useFaculties();*/
 
-fetchCourses(BASE_URL!).then((result) => {
-  console.log(result);
-});
+async function getScheduleJSON(
+  url: string,
+  groupValue: string,
+  courseValue: string,
+  facultyValue: string
+): Promise<string> {
+  const scheduleData = await fetchSchedule(
+    url,
+    groupValue,
+    courseValue,
+    facultyValue
+  );
+  const jsonString = JSON.stringify(scheduleData, null, 2);
+  return jsonString;
+}
 
-fetchFaculties(BASE_URL!).then((result) => {
-  console.log(result);
-});
-
-fetchGroups(BASE_URL!).then((result) => {
-  console.log(result);
-});
+getScheduleJSON(BASE_URL!, "918", "2", "30000")
+  .then((jsonString) => {
+    fs.writeFileSync("data.json", jsonString);
+  })
+  .catch((error) => {
+    console.error("Error fetching schedule:", error);
+  });

@@ -1,4 +1,14 @@
+import { ICourse } from "./ICourse";
+import { IFaculty } from "./IFaculty";
+import { IGroup } from "./IGroup";
+
 export interface ILesson {
+  //faculty: IFaculty;
+
+  //course: ICourse;
+
+  //group: IGroup;
+
   //Название предмета
   subject: string;
 

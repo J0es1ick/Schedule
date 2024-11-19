@@ -1,11 +1,7 @@
 import { load } from "cheerio";
-import { getPageContent } from "../helpers/getPageContent";
 import { ICourse } from "../models";
 
-export async function fetchCourses(url: string): Promise<{
-  courses: ICourse[];
-}> {
-  const html = await getPageContent(url);
+export async function fetchCourses(html: string): Promise<ICourse[]> {
   const $ = load(html);
 
   const courses: ICourse[] = [];
@@ -18,5 +14,5 @@ export async function fetchCourses(url: string): Promise<{
     }
   );
 
-  return { courses };
+  return courses;
 }

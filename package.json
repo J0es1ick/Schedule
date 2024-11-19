@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "babel-node index.js"
+    "dev": "ts-node --script-mode index.ts"
   },
   "author": "",
   "license": "ISC",
