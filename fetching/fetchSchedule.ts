@@ -11,17 +11,9 @@ export async function fetchSchedule(
   groupValue: string = "",
   courseValue: string = "",
   facultyValue: string = ""
-): Promise<{
-  lessons: ILesson[];
-  courses: ICourse[];
-  faculties: IFaculty[];
-  groups: IGroup[];
-}> {
+): Promise<ILesson[]> {
   const html = await getPageContent(url, groupValue, courseValue, facultyValue);
   const $ = load(html);
-  const courses: ICourse[] = await fetchCourses(html);
-  const faculties: IFaculty[] = await fetchFaculties(html);
-  const groups: IGroup[] = await fetchGroups(html);
 
   const lessons: ILesson[] = [];
   let currentTime: { start: string; end: string } | null = null;
@@ -107,5 +99,5 @@ export async function fetchSchedule(
   });
 
   removeLessonWithSubject(lessons, "");
-  return { lessons, courses, faculties, groups };
+  return lessons;
 }
